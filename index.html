@@ -1,0 +1,194 @@
+<!doctype html>
+<html>
+  <head>
+    <title>Socket.IO chat</title>
+    <style>
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      body { font: 13px Helvetica, Arial; }
+      div.vert { display: inline }
+      form { background: #000; padding: 3px; position: fixed; bottom: 0; width: 100%; }
+      form input { border: 0; padding: 10px; width: 90%; margin-right: .5%; }
+      form button { width: 9%; background: rgb(130, 224, 255); border: none; padding: 10px; }
+      #messages { list-style-type: none; margin: 0; padding: 0; }
+      #messages li { padding: 5px 10px; }
+      #messages li:nth-child(odd) { background: #eee; }
+
+      .html {
+          width: 80%;
+          margin: 0 auto;
+          list-style-type: none;
+          padding: 40px 0;
+          float:left;
+          overflow:hidden;
+          
+      }
+      .html ul, .html2 ul {   
+          list-style-type: none;   
+          text-align:left;     
+          border:1px solid gray;
+      }
+
+      .html li, html2 li {
+          padding-right: 10px;
+          padding-bottom: 20px;
+          
+      }
+      .html2 {
+          width: 20%;
+          margin: 0 auto;
+          list-style-type: none;
+          padding: 40px 0;
+          float:left;
+          overflow:hidden;
+          
+      }
+
+    </style>
+  </head>
+  <body>
+    <div id="" valign="middle" align="center">
+      <input id="n" autocomplete="off" placeholder="Nickname"/>
+      <button id="confirmB" onclick="myFunction()">Confirm</button>
+    </div>
+    <div style="position:absolute;z-index:0">
+      <label id="typing"></label>
+    </div>
+    <div class="html">
+      <ul id="messages"></ul>
+    </div>
+    <div class="html2">
+      <ul id="users"></ul>
+    </div>
+    <form action="">
+      <input id="to" autocomplete="off" placeholder="To: (leave empty to send to all)" disabled/>
+      <input id="m" autocomplete="off" placeholder="Message:" disabled/>
+      <button id="formB" disabled>Send</button>
+    </form>
+    </div>
+    <script src="https://cdn.socket.io/socket.io-1.2.0.js"></script>
+    <script src="http://code.jquery.com/jquery-1.11.1.js"></script>
+    <script>
+      function myFunction() {
+        var x = "name=" + $('#n').val()
+        let socket = io.connect('http://localhost:3000/', { query: x });
+
+        var ids = [];
+        var names = [];
+
+        var timeout;
+
+        function timeoutFunction() {
+            typing = false;
+            socket.emit("typing", false);
+
+        }
+
+        $('#m').keyup(function() {
+            typing = true;
+            socket.emit('typing', 'typing...');
+            clearTimeout(timeout);
+            timeout = setTimeout(timeoutFunction, 2000);
+        });
+
+        socket.on('typing', function(data) {
+            if (data) {
+                $('.typing').html(data);
+            } else {
+                $('.typing').html("");
+            }
+        });
+
+        $('form').submit(function(){
+          if ($('#m').val() === ""){
+            return false
+          }
+          if ($('#to').val() === ""){
+            socket.emit('chat message', $('#n').val(), $('#m').val());
+            $('#messages').append($('<li>').text($('#n').val() + ": " + $('#m').val()));
+          }else if(names.includes($('#to').val())){
+            socket.emit('private message', $('#n').val(), $('#m').val(),$('#to').val());
+            $('#messages').append($('<li>').text("to " + $('#to').val() + ": " + $('#m').val()));
+          }else if ($('#to').val() === $('#n').val()){
+            $('#messages').append($('<li>').text("You can't send a private message to yourself"));
+          }else{
+            $('#messages').append($('<li>').text("User  " + $('#to').val() + " isn't connected"));
+          }
+          $('#m').val("");
+
+          return false;
+        });
+
+        socket.on('chat message', function(msg, userName){
+          $('#messages').append($('<li>').text(userName + ": " + msg));
+        });
+
+        socket.on('disconnected', function(id){
+          for(var i=0; i<ids.length; i++) {
+            if (ids[i] === id){
+              ids.splice(i,1);
+              names.splice(i+1,1);
+              $('#users').children().eq(i+1).remove();
+            }
+          }
+          $('#messages').append($('<li>').text("user disconnected"));
+        });
+
+        socket.on('typing', function(isTyping){
+          if (isTyping){
+            document.getElementById('typing').innerHTML = "another user is typing...";
+          } else{
+            document.getElementById('typing').innerHTML = "";
+          }
+        });
+
+          socket.on("prevConectedUser", function(userId, userName){
+          socket.emit(userId);
+          $('#users').append($('<li>').text(userName));
+          ids.push(userId)
+          names.push(userName)
+        });
+
+        socket.on("conectedUser", function(userId, userName){
+          $('#messages').append($('<li>').text('a user connected'));
+          $('#users').append($('<li>').text(userName));
+          ids.push(userId)
+          names.push(userName)
+        });
+
+        socket.on("cancelConnection", function(){
+          document.getElementById('typing').innerHTML = "Username already taken. Recharge site to try again";
+
+          document.getElementById("n").disabled = false;
+          document.getElementById("confirmB").disabled = false;
+        
+          document.getElementById("m").disabled = true;
+          document.getElementById("formB").disabled = true;
+          document.getElementById("to").disabled = true;
+
+          socket.disconnect();
+          $('#users').empty();
+        });
+      
+        socket.on("private message", function(msg, userName){
+          $('#messages').append($('<li>').text(userName + " tells you: " + msg));
+        });
+
+        socket.on("ConectSuccesful", function(){
+          document.getElementById('typing').innerHTML = "";
+          $('#users').append($('<li>').text($('#n').val()));
+
+          document.getElementById("n").disabled = true;
+          document.getElementById("confirmB").disabled = true;
+          
+          document.getElementById("m").disabled = false;
+          document.getElementById("formB").disabled = false;
+          document.getElementById("to").disabled = false;
+        });
+      } 
+      
+      //Use to debug in server
+      //socket.emit('debug','user conected received');
+
+    </script>
+  </body>
+</html>
