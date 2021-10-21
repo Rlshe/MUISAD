@@ -49,6 +49,7 @@ io.on('connection', function(socket){
   });
   
   socket.on('private message', function(user, msg, to){
+    console.log('private message to ' + to + ': ' + msg);
     const userf = (element) => element === to;
     var pos = Names.findIndex(userf);
     console.log(pos);
