@@ -98,9 +98,14 @@
             }
         });
 
-        $('form').submit(function(){
+        $('form').submit(function(e){
+
+          if (!socket.connected){
+            return false;
+          }
+
           if ($('#m').val() === ""){
-            return false
+            return false;
           }
           socket.emit('debug','user message');
           if ($('#to').val() === ""){
