@@ -2,32 +2,10 @@
 
 Proyecto de sad
 
-modulo de carrito class Carro new carrito(object) para crear un carro
+modulo de carrito ,mongoDB y server Registry
 
-importObject(object) para anañadir objetos al carro
+los Api de carro mongo DB se registra automaticamente a server Registry y  para probar se madan un get/find a server registry para conocer el port de carro y mandar un put.add o put.delete para eliminar objetos del carro, El carro hace las peticiones al registry para saber el direcicion de mongodb automaticamente y hacer los peticiones para hacer los cambios de objeto.
 
-deleteObject(object) elimina objetos que hay en el carro
 
-toString() return lista de objeto en String
 
-probar_carro.js
-
-Script para probar el modulo de carrito
-
-Creamos un objeto carro y le insertamos y eliminamos items. La información se muestra por terminal.
-
-cliente-mongo2.js
-
-modulo para conexión con mongo db con 3 funciones:
-
-connect() para conectar con una base de datos mongodb creada en atlas
-
-close() para cerrar la conexión de la base de datos
-
-finditems(item, quant) para buscar los items en la base de datos, este metodo tiene los parametros item(nombre del item que se busca) y quant(cantidad que se comprueba), en caso de haber mas de la cantidad pedida se indica que existe el producto por consola y se devuelve true, en caso de no haber bastante stock o no haber productos se lanza un error personalizado en cada caso.
-
-Base de datos atlas contiene 3 items palos, con 0 en stock, tornillos, con 10 en stock y muelles, con 5 en stock
-
-probar-mongo.js
-
-este script realiza una conexión a la base de datos con el metodo connect de cliente-mongo2.js. Realiza 3 busquedas de 3 items y devuelve si dichos items se pueden meter o no en el carrito. Finalmente cierra la conexión.
+para probar se debe de ejecutar los 3 run y hacer un get a server Rigistry conseguir el port y hacer el put.add o put.del con los elementos a modificar.
